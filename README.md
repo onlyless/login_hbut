@@ -1,5 +1,5 @@
 ## 湖北工业大学教务系统查分、查课表小程序
-运行该小程序需安装requests和bs4库
+运行该小程序需安装requests和bs4库，还需要安装能操作excel的xlwt库
 
 ``` shell
 pip install requests
