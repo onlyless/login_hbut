@@ -2,7 +2,6 @@ import requests
 from bs4 import BeautifulSoup,element
 import os
 
-login_url = 'http://run.hbut.edu.cn/Account/LogOn'
 checkimg = 'http://run.hbut.edu.cn/Account/GetValidateCode'
 StuGrade = 'http://run.hbut.edu.cn/StuGrade/Index'
 g_20171 = '?SemesterName=20171&SemesterNameStr=2017学年%20第一学期'
@@ -17,8 +16,8 @@ headers = {
 }
 
 def getHtmlText(SemesterName,payload):
-    respose = session.post(login_url,headers=headers,data=payload)
-    print('服务器端返回码：',respose.status_code)
+    login_url = 'http://run.hbut.edu.cn/Account/LogOnForJson?Mobile=1&UserName=%s&Password=%s&Role=Student'%(payload['UserName'],payload['Password'])
+    session.get(login_url,headers = headers)
     if SemesterName=='1':
         SemesterName = g_20161
     if SemesterName=='2':
@@ -26,24 +25,9 @@ def getHtmlText(SemesterName,payload):
     if SemesterName=='3':
         SemesterName = g_20171
     grade_url = StuGrade+SemesterName
-    print(grade_url)
     stugrade = session.get(grade_url,headers=headers)
     return stugrade.text
-    
-def GetValidateCode():
-    checkcodecontent = session.get(checkimg,headers=headers)
-    with open('checkcode.jpg','wb') as f:
-        f.write(checkcodecontent.content)
-    print('验证码已写入到本地！')
-    os.startfile("checkcode.jpg")
-    checkcode = input("请输入验证码：")
-    payload = {
-        'Role':'Student',
-        'UserName': input('请输入账号：'),
-        'Password': input('请输入密码：'),
-        'ValidateCode': checkcode
-    }
-    return payload
+
 
 def GetFromText(txt):
     form = []
@@ -58,7 +42,6 @@ def GetFromText(txt):
                 form.append([''.join(s1.split()),''.join(s2.split()),''.join(s3.split())])
         except:
             continue
-    
     return form
 
 def printgrade(ulist,num):
@@ -70,9 +53,13 @@ def printgrade(ulist,num):
         print(tplt.format(u[0],u[1],u[2],chr(12288)))
         file.write(tplt.format(u[0],u[1],u[2],chr(12288)))
 
-def main(): 
+def main():
     try:
-        payload = GetValidateCode()
+        payload = {
+        'UserName': input('请输入账号：'),
+        'Password': input('请输入密码：'),
+        'Role':'Student',
+        }
         print('大一上： 1')
         print('大一下： 2')
         print('大二上： 3')

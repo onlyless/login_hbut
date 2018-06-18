@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 import xlwt
 import os
 
-login_url = 'http://run.hbut.edu.cn/Account/LogOn'
 checkimg = 'http://run.hbut.edu.cn/Account/GetValidateCode'
 Schedule = 'http://run.hbut.edu.cn/ArrangeTask/MyselfSchedule'
 workbook = xlwt.Workbook(encoding='utf-8')
@@ -14,26 +13,10 @@ headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.62 Safari/537.36",
 }
 
-#获取登陆验证码
-def GetValidateCode():
-    checkcodecontent = session.get(checkimg,headers=headers)
-    with open('checkcode.jpg','wb') as f:
-        f.write(checkcodecontent.content)
-    print('验证码已写入到本地！')
-    os.startfile("checkcode.jpg")
-    checkcode = input("请输入验证码：")
-    payload = {
-        'Role':'Student',
-        'UserName': input('请输入账号：'),
-        'Password': input('请输入密码：'),
-        'ValidateCode': checkcode
-    }
-    return payload
-
 #获取课程表网页
 def getHtmlText(payload):
-    respose = session.post(login_url,headers=headers,data=payload)
-    print('服务器端返回码：',respose.status_code)
+    login_url = 'http://run.hbut.edu.cn/Account/LogOnForJson?Mobile=1&UserName=%s&Password=%s&Role=Student'%(payload['UserName'],payload['Password'])
+    session.get(login_url,headers = headers)
     work = session.get(Schedule,headers=headers)
     return work.text
 
@@ -75,12 +58,16 @@ def WirteXls(list):
 
 def main():
     try:
-        payload = GetValidateCode()
+        payload = {
+        'UserName': input('请输入账号：'),
+        'Password': input('请输入密码：'),
+        'Role':'Student',
+        }
         string = getHtmlText(payload)
         string = string.replace('<br />','')
         list = getFormText(string)
         WirteXls(list)
-
+    
     finally:
         workbook.save('MyselfSchedule.xls')
 
